@@ -26,11 +26,7 @@ class ModuleController extends Controller {
             $this->moduleService->sendMail($errors);
             return response(['success' => false, 'data' => $errors]);
         }
-        $totalLength = count(file($file));
-        if($totalLength < 1001) {
-            $errors []= "File donot contain 1000 records.";
-            $this->moduleService->sendMail($errors);
-        }
+        // $totalLength = count(file($file));
         $fileName = $file->getClientOriginalName();
         if (!storage_path('/temp')) {
             File::makeDirectory('/temp', $mode = 0777, true, true);
@@ -40,7 +36,7 @@ class ModuleController extends Controller {
         try {
             $jobResult = new ProcessCSVRecords($fileName);
             dispatch($jobResult);
-            return response(['success' => true]);
+            return response(['success' => true, 'data' => 'Processing Complete']);
         } catch (Throwable $err) {
             return response(['success' => false, 'error' => $err]);
         }

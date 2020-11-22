@@ -7,6 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 use Facades\ {
     App\Data\Services\ModuleService
 };
@@ -34,6 +35,7 @@ class ProcessCSVRecords implements ShouldQueue
     {
         $headerKeys = array('module_code', 'module_name', 'module_term');
         $isHeader = false;
+        $recordCount = 1;
         $errors = $header = $moduleData = $dataGroup = [];
         if (($handle = fopen(storage_path('temp/') . $this->filename, 'r')) !== false) {
             while (($row = fgetcsv($handle, 1000, ',')) !== false) {
@@ -54,14 +56,17 @@ class ProcessCSVRecords implements ShouldQueue
                     }
                     if (count($errors) > 0) {
                         ModuleService::sendMail($errors);
-                        return false;
                     }
                     $header = $row;
                 } else {
+                    $recordCount++;
                     $dataGroup[] = array_combine($header, $row);
                 }
             }
             fclose($handle);
+        }
+        if($recordCount < 1000) {
+            $errors []= "File donot contain 1000 records.";
         }
         unlink(storage_path('/temp/' . $this->filename));
         // handle records
@@ -87,14 +92,13 @@ class ProcessCSVRecords implements ShouldQueue
             $totalInserted = count($moduleData);
             $result = ModuleService::saveModule($moduleData);
             if ($result) {
-                $removed = $totalInserted - $totalInserted - 1; //-1 to remove header
+                $removed = $recordCount - $totalInserted;
                 $removed = $removed == -1 ? 0 : $removed;
+                Log::info($totalInserted . " records inserted. ". $removed . " failed!");
                 if(!empty($errors)) {
                     ModuleService::sendMail($errors);
                 }
-                return true;
-            } 
-            return false;
+            }
         }
     }
 }

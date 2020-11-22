@@ -59,9 +59,9 @@ class ModuleService {
     }
     public function saveModule($bulkdata) {
         $chunks = array_chunk($bulkdata, 100);
-        // foreach ($chunks as $chunk) {
-        //     Module::insert($chunk);
-        // }
+        foreach ($chunks as $chunk) {
+            Module::insert($chunk);
+        }
         return true;
     }
 }
