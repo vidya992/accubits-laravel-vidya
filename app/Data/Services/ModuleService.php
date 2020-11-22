@@ -45,7 +45,30 @@ class ModuleService {
         return Mail::to(env('SEND_MAIL', 'charush@accubits.com'))
                 ->queue(new SendRecordErrorsMail($errors));
     }
-    
+    public function validateRecordData($header, $dataGroup) {
+        $errors = [];
+        foreach ($dataGroup as $key => &$value) {
+            $noError = true;            //empty value rows are not inserted
+            foreach($header as $ind => $name) {
+                if(empty($name)) {
+                    unset($value[$name]);
+                } else {
+                    if (empty($value[$name])) {
+                        $noError = false;
+                        $errors['Empty values'][$name][] = $key + 2; // +2 to exclude 0 and header
+                    } else if (preg_match('/[^A-Za-z0-9 ,.;\n]/', $value[$name])) { //check string with special char except .,;
+                        $errors['Invalid values'][$name][] = $key + 2;
+                    } 
+                }
+            }
+            if ($noError) {
+                $moduleData[] = $value;
+            }
+        }
+        $data['records'] = $moduleData;
+        $data['errors'] = $errors;
+        return $data;
+    }
     public function validateHeaders($name, $key) {
         $key = $key + 2;
         $data = ['name' => $name];

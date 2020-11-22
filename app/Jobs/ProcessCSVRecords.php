@@ -65,29 +65,15 @@ class ProcessCSVRecords implements ShouldQueue
             }
             fclose($handle);
         }
+        unlink(storage_path('/temp/' . $this->filename));
+        // handle records
+        $data = ModuleService::validateRecordData($header,$dataGroup);
+        $moduleData = $data['records'];
+        $errors = $data['errors'];
         if($recordCount < 1000) {
             $errors ['Record Count']= "File donot contain 1000 records.";
         }
-        unlink(storage_path('/temp/' . $this->filename));
-        // handle records
-        foreach ($dataGroup as $key => &$value) {
-            $noError = true;            //empty value rows are not inserted
-            foreach($header as $ind => $name) {
-                if(empty($name)) {
-                    unset($value[$name]);
-                } else {
-                    if (empty($value[$name])) {
-                        $noError = false;
-                        $errors['Empty values'][$name][] = $key + 2; // +2 to exclude 0 and header
-                    } else if (preg_match('/[^A-Za-z0-9 ,.;\n]/', $value[$name])) { //check string with special char except .,;
-                        $errors['Invalid values'][$name][] = $key + 2;
-                    } 
-                }
-            }
-            if ($noError) {
-                $moduleData[] = $value;
-            }
-        }
+        //insert to Db
         if (count($moduleData) > 0) {
             $totalInserted = count($moduleData);
             $result = ModuleService::saveModule($moduleData);
