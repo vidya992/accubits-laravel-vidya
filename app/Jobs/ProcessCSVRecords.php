@@ -35,7 +35,7 @@ class ProcessCSVRecords implements ShouldQueue
     {
         $headerKeys = array('module_code', 'module_name', 'module_term');
         $isHeader = false;
-        $recordCount = 1;
+        $recordCount = 0;
         $errors = $header = $moduleData = $dataGroup = [];
         if (($handle = fopen(storage_path('temp/') . $this->filename, 'r')) !== false) {
             while (($row = fgetcsv($handle, 1000, ',')) !== false) {
@@ -66,7 +66,7 @@ class ProcessCSVRecords implements ShouldQueue
             fclose($handle);
         }
         if($recordCount < 1000) {
-            $errors []= "File donot contain 1000 records.";
+            $errors ['Record Count']= "File donot contain 1000 records.";
         }
         unlink(storage_path('/temp/' . $this->filename));
         // handle records
