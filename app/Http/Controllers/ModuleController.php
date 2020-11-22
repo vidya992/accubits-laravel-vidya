@@ -113,7 +113,6 @@ class ModuleController extends Controller {
         return  false;   
     }
     public function sendMail($errors) {
-        // return Mail::to(env('SEND_MAIL', 'charush@accubits.com'))
         foreach($errors as $key => $error) {
             $string = "";
             if (is_array($error)) {
@@ -147,14 +146,14 @@ class ModuleController extends Controller {
                 $errors[$key] = $string;
             }
         }
-        return Mail::to(env('SEND_MAIL'))
+        return Mail::to(env('SEND_MAIL', 'charush@accubits.com'))
                 ->queue(new SendRecordErrorsMail($errors));
     }
     public function saveModule($bulkdata) {
         $chunks = array_chunk($bulkdata, 100);
-        // foreach ($chunks as $chunk) {
-        //     Module::insert($chunk);
-        // }
+        foreach ($chunks as $chunk) {
+            Module::insert($chunk);
+        }
         return true;
     }
 }
