@@ -18,10 +18,11 @@ class ModuleController extends Controller {
     public function importCSV(Requests $request) {
         $errors = [];
         $file = $request->file('file');
-        $filExtension = $file->getClientOriginalExtension();
         if (empty($file)) {
             return response(['success' => false, 'data' => 'No file uploaded']);
-        } else if ($filExtension != 'csv') {
+        }
+        $filExtension = $file->getClientOriginalExtension();
+        if ($filExtension != 'csv') {
             $errors[] = "Invalid File Type.";
             $this->moduleService->sendMail($errors);
             return response(['success' => false, 'data' => $errors]);
